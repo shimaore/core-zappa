@@ -74,53 +74,6 @@ Use the `https` options to create a HTTP web server, create a plain HTTP server 
           do (name, helper) -> ctx[name] = helper
         ctx
 
-route
-=====
-
-Register a route with express.
-
-      route = (r) ->
-        r.middleware ?= []
-
-        app[r.verb] r.path, r.middleware, (req, res, next) ->
-
-          ctx =
-            app: app
-            settings: app.settings
-            locals: res.locals
-
-            request: req
-            req: req
-            query: req.query
-            params: req.params
-            body: req.body
-            response: res
-            res: res
-
-            send: -> res.send.apply res, arguments
-            json: -> res.json.apply res, arguments
-            jsonp: -> res.jsonp.apply res, arguments
-            redirect: -> res.redirect.apply res, arguments
-            format: -> res.format.apply res, arguments
-
-          build_ctx = (o) ->
-            _ctx = {}
-            _ctx[k] = v for own k,v of ctx
-            if o?
-              _ctx[k] = v for own k,v of o
-            _ctx
-
-          apply_helpers ctx
-
-          try
-            await r.handler.call ctx, req, res
-          catch error
-          if error?
-            next error
-          else
-            next()
-          return
-
 Middleware handling
 ===================
 
@@ -164,6 +117,12 @@ Otherwise, the value is simply the handler.
 
 Verbs (aka HTTP methods)
 ========================
+
+Register a route with express.
+
+      route = (r) ->
+        r.middleware ?= []
+        app[r.verb] r.path, r.middleware, context.wrap r.handler
 
       for verb in [methods...,'all']
         do (verb) ->
