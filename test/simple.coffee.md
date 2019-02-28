@@ -1,4 +1,4 @@
-    (require 'chai').should()
+    ({expect} = require 'chai').should()
     request = require 'superagent'
     sleep = (timeout) -> new Promise (resolve) -> setTimeout resolve, timeout
 
@@ -110,3 +110,41 @@
         res.should.have.property 'body', true
         res = await request.get "http://127.0.0.1:#{p}/master"
         res.should.have.property 'body', false
+
+      it 'should support `route`', ->
+        p = port++
+        {server} = Zappa p, ->
+          @get '/:id', ->
+            if @params.id is 'here'
+              @json 'here'
+            else
+              'route'
+
+          @get '/:id', ->
+            @json 'there'
+
+        after -> server.close()
+        res = await request.get "http://127.0.0.1:#{p}/here"
+        res.should.have.property 'body', 'here'
+        res = await request.get "http://127.0.0.1:#{p}/anywhere"
+        res.should.have.property 'body', 'there'
+
+      it 'should allow logging', ->
+        p = port++
+        requests = 0
+        errors = 0
+        {server} = Zappa p, ->
+          @use (req,res,next) ->
+            requests++
+            await next()
+            errors++ if res.statusCode >= 400
+
+          @get '/good', -> @json yes
+
+        after -> server.close()
+        try await request.get "http://127.0.0.1:#{p}/good"
+        expect(requests).to.eql 1
+        expect(errors).to.eql 0
+        try await request.get "http://127.0.0.1:#{p}/bad"
+        expect(requests).to.eql 2
+        expect(errors).to.eql 1

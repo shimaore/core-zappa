@@ -122,7 +122,7 @@ Register a route with express.
 
       route = (r) ->
         r.middleware ?= []
-        app[r.verb] r.path, r.middleware, context.wrap r.handler
+        app[r.verb] r.path, r.middleware, context.wrap r.handler, false
 
       for verb in [methods...,'all']
         do (verb) ->
@@ -174,7 +174,7 @@ Register a route with express.
 
 Wrap middleware so that they can be ran as regular Express middleware.
 
-      context.wrap = (f) ->
+      context.wrap = (f,keep_going = true) ->
         (req,res,next) ->
 
 This is the context available to Zappa middleware.
@@ -200,12 +200,15 @@ This is the context available to Zappa middleware.
 
           apply_helpers ctx
           try
-            await f.call ctx, req, res
+            v = await f.call ctx, req, res
           catch error
-          if error?
-            next error
-          else
-            next()
+          switch
+            when error?
+              next error
+            when v is 'route'
+              next 'route'
+            when keep_going
+              next()
           return
 
 .use
