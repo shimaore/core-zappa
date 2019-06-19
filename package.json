@@ -22,12 +22,12 @@
     "chai": "^4.2.0",
     "coffeescript": "^2.3.2",
     "mocha": "^6.0.2",
-    "nyc": "^13.3.0",
-    "superagent": "^4.1.0"
+    "nyc": "^14.1.1",
+    "superagent": "^5.1.0"
   },
   "dependencies": {
     "express": "^4.16.4",
-    "invariate": "^1.3.1",
+    "invariate": "^2.0.0",
     "methods": "^1.1.2"
   }
 }
