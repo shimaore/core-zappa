@@ -204,7 +204,7 @@ This is the context available to Zappa middleware.
 
           apply_helpers ctx
           try
-            v = await f.call ctx, req, res
+            v = await f.call ctx, req, res, ->
           catch error
           switch
             when error?
