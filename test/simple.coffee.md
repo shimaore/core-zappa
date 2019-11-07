@@ -27,6 +27,24 @@
         res.should.have.property 'body'
         res.body.should.have.property 'bear', 42
 
+      it 'should support `done`', ->
+        p = port++
+        called_me = false
+        {server} = Zappa p, ->
+          mw1 = @wrap ->
+            @res.json kitty: 42
+            @res.end()
+            @done()
+            return
+          mw2 = @wrap -> called_me = true
+          @get '/foo', mw1, mw2, -> @json bear: 43
+
+        after -> server.close()
+        res = await request.get "http://127.0.0.1:#{p}/foo"
+        res.should.have.property 'body'
+        res.body.should.have.property 'kitty', 42
+        expect(called_me).to.be.false
+
       it 'should handle async middleware', ->
         p = port++
         {server} = Zappa p, ->

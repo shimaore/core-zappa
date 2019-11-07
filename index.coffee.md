@@ -177,6 +177,8 @@ Wrap middleware so that they can be ran as regular Express middleware.
       context.wrap = (f,keep_going = true) ->
         (req,res,next) ->
 
+          keep_going_this_time = keep_going
+
 This is the context available to Zappa middleware.
 
           ctx =
@@ -198,6 +200,8 @@ This is the context available to Zappa middleware.
             redirect: -> res.redirect.apply res, arguments
             format: -> res.format.apply res, arguments
 
+            done: -> keep_going_this_time = false
+
           apply_helpers ctx
           try
             v = await f.call ctx, req, res
@@ -207,7 +211,7 @@ This is the context available to Zappa middleware.
               next error
             when v is 'route'
               next 'route'
-            when keep_going
+            when keep_going_this_time
               next()
           return
 
